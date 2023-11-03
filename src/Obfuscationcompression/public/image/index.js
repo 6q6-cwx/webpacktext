@@ -1,0 +1,1 @@
+import './webpacklogo.jpeg'

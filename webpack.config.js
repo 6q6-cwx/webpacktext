@@ -1,10 +1,10 @@
-const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const TerserPlugin = require('terser-webpack-plugin');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const CssMinimizerPlugin = require('css-minimizer-webpack-plugin'); 
-const HexEncodePlugin = require('./Hex');
-const WebpackObfuscator = require('webpack-obfuscator');
+const path = require("path");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const TerserPlugin = require("terser-webpack-plugin");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
+const HexEncodePlugin = require("./Hex");
+const WebpackObfuscator = require("webpack-obfuscator");
 
 // ==================================================================
 // webpack打包html文件
@@ -16,40 +16,70 @@ const WebpackObfuscator = require('webpack-obfuscator');
 
 // 代码混淆 webpack-obfuscator
 module.exports = {
-    mode: 'production',
-    entry: './src/Obfuscationcompression/index.js',
-    output: {
-      path: path.resolve(__dirname, 'dist'),
-      filename: 'index.js'
-    },
-    module: {
-      rules: [
-        {
-          test: /\.css$/,
-          use: [MiniCssExtractPlugin.loader, 'css-loader']
-        }
-      ]
-    },
-    plugins: [
-      new HtmlWebpackPlugin({
-        template: 'src/Obfuscationcompression/index.html'//daimahunxiao/
-      }),
-      new MiniCssExtractPlugin({
-        filename: 'styles.css',
-      }),
-      new WebpackObfuscator({
-        compact: true,
-        rotateStringArray: true,
-        stringArray: true,
-        stringArrayThreshold: 0.75,
-        unicodeEscapeSequence: false
-      }),
-      // new HexEncodePlugin()
+  mode: "production", //环境设置 development production
+  // entry: {
+  //   main:"./src/Obfuscationcompression/index.js",
+  //   // styles: "./src/Obfuscationcompression/public/css/firstdemo.css" // 用来处理单个 CSS 文件
+  // },
+  entry: "./src/Obfuscationcompression/index.js",
+  output: {
+    path: path.resolve(__dirname, "dist"),
+    // filename: "index.js", 只能用于单个文件
+    filename: "[name].bundle.js",  //用于多个文件 方便文件懒加载和分割
+  },
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        // include: [
+        //   path.resolve(__dirname, "./src/Obfuscationcompression/public/css"),//在这个文件夹中找css
+        // ],
+        use: [
+          MiniCssExtractPlugin.loader,
+        , "css-loader"],
+      },
+      {
+        test: /\.(png|jpg|jpeg|gif|svg)$/i, //正则表达式用于匹配图像文件的扩展名
+        include: [
+          path.resolve(__dirname, "./src/Obfuscationcompression/public/image"),
+        ], //指定了要处理的文件夹路径
+        use: [
+          {
+            loader: "file-loader", //只能处理图片文件夹，用于将图像文件复制到输出目录（dist/img），并生成相应的文件名
+            options: {
+              name: "[path][name].[ext]",
+              context: path.resolve(
+                __dirname,
+                "./src/Obfuscationcompression/public/image"
+              ), //这个地址是图片的基础地址
+              outputPath: "public/image",
+              publicPath: "/image", //使用公共路径来解析图片
+            },
+          },
+        ],
+      },
     ],
-    optimization: {  
-      minimize: true,  
-      minimizer: [  
-        new CssMinimizerPlugin(), 
-      ],  
-    },  
-}
+  },
+  plugins: [
+    //Plugins是Webpack中用于实现各种功能的扩展插件
+    new HtmlWebpackPlugin({
+      template: "src/Obfuscationcompression/index.html", //daimahunxiao/
+    }),
+    new MiniCssExtractPlugin({
+      filename: 'public/css/styles.css',//配置文件名称和路径
+    }),
+    new WebpackObfuscator({
+      compact: true, //代码压缩
+      rotateStringArray: true, //重新排列字符串数组的顺序
+      stringArray: true, //处理字符串
+      stringArrayThreshold: 0.75,
+      unicodeEscapeSequence: false, //Unicode转义序列转换为相应的字符
+    }),
+    // new HexEncodePlugin()
+  ],
+  optimization: {
+    //自定义优化策略的配置项、配置插件中的内容
+    minimize: true,
+    minimizer: [new CssMinimizerPlugin()],
+  },
+};
